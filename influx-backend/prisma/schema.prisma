@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  INFLUENCER
+  BRAND
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum PromotionType {
+  Photo
+  Video
+  Story
+  Reel
+  Review
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  username      String   @unique
+  password_hash String
+  role          Role
+  created_at    DateTime @default(now())
+
+  influencer_profile InfluencerProfile?
+  brand_profile      BrandProfile?
+
+  connections_sent     Connection[] @relation("Requester")
+  connections_received Connection[] @relation("Recipient")
+
+  messages_sent    Message[]
+  conversations_1  Conversation[] @relation("Participant1")
+  conversations_2  Conversation[] @relation("Participant2")
+
+  notifications    Notification[]
+
+  @@index([username])
+  @@index([email])
+}
+
+model InfluencerProfile {
+  id                String   @id @default(uuid()) @db.Uuid
+  user_id           String   @unique @db.Uuid
+  user              User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  full_name         String?
+  bio               String?
+  location          String?
+  profile_photo_url String?
+  cover_photo_url   String?
+  standard_rates    Json?    
+  social_links      Json?    
+  total_followers   Int      @default(0)
+  engagement_rate   Float    @default(0.0)
+  view_count        Int      @default(0)
+
+  applications      Application[]
+}
+
+model BrandProfile {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @unique @db.Uuid
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  company_name String
+  sector       String?
+  description  String?
+  website_url  String?
+  location     String?
+  logo_url     String?
+  banner_url   String?
+  social_links Json?
+  view_count   Int      @default(0)
+
+  campaigns    Campaign[]
+}
+
+model Connection {
+  id           String   @id @default(uuid()) @db.Uuid
+  requester_id String   @db.Uuid
+  recipient_id String   @db.Uuid
+  status       ConnectionStatus @default(PENDING)
+  created_at   DateTime @default(now())
+
+  requester    User     @relation("Requester", fields: [requester_id], references: [id], onDelete: Cascade)
+  recipient    User     @relation("Recipient", fields: [recipient_id], references: [id], onDelete: Cascade)
+
+  @@index([requester_id])
+  @@index([recipient_id])
+}
+
+model Campaign {
+  id                   String        @id @default(uuid()) @db.Uuid
+  brand_id             String        @db.Uuid
+  brand                BrandProfile  @relation(fields: [brand_id], references: [id], onDelete: Cascade)
+  title                String
+  promotion_type       PromotionType
+  description          String
+  min_followers        Int           @default(0)
+  required_niche       String?
+  required_platform    String?
+  budget_min           Int           @default(0)
+  budget_max           Int           @default(0)
+  application_deadline DateTime
+  slots_available      Int           @default(1)
+  created_at           DateTime      @default(now())
+
+  applications         Application[]
+
+  @@index([brand_id])
+}
+
+model Application {
+  id            String        @id @default(uuid()) @db.Uuid
+  campaign_id   String        @db.Uuid
+  influencer_id String        @db.Uuid
+  cover_message String?
+  proposed_rate Int           @default(0)
+  status        ApplicationStatus @default(PENDING)
+  created_at    DateTime      @default(now())
+
+  campaign      Campaign      @relation(fields: [campaign_id], references: [id], onDelete: Cascade)
+  influencer    InfluencerProfile @relation(fields: [influencer_id], references: [id], onDelete: Cascade)
+}
+
+model Conversation {
+  id              String    @id @default(uuid()) @db.Uuid
+  participant_1   String    @db.Uuid
+  participant_2   String    @db.Uuid
+  last_message_id String?   @db.Uuid 
+  updated_at      DateTime  @updatedAt
+
+  user1           User      @relation("Participant1", fields: [participant_1], references: [id], onDelete: Cascade)
+  user2           User      @relation("Participant2", fields: [participant_2], references: [id], onDelete: Cascade)
+
+  messages        Message[] @relation("ConversationMessages")
+  last_message    Message?  @relation("LastMessage", fields: [last_message_id], references: [id])
+
+  @@unique([participant_1, participant_2])
+}
+
+model Message {
+  id              String      @id @default(uuid()) @db.Uuid
+  conversation_id String      @db.Uuid
+  sender_id       String      @db.Uuid
+  content         String?
+  attachment_url  String?
+  is_read         Boolean     @default(false)
+  created_at      DateTime    @default(now())
+
+  conversation    Conversation @relation("ConversationMessages", fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender          User        @relation(fields: [sender_id], references: [id], onDelete: Cascade)
+
+  last_in_conversation Conversation[] @relation("LastMessage")
+}
+
+model Notification {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @db.Uuid
+  type         String
+  content      String
+  reference_id String?
+  is_read      Boolean  @default(false)
+  created_at   DateTime @default(now())
+
+  user         User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+}
