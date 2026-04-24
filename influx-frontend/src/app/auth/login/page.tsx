@@ -28,6 +28,8 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
   const handleDemoLogin = async (role: 'INFLUENCER' | 'BRAND') => {
     setIsLoading(true);
     const credentials = role === 'INFLUENCER' 
