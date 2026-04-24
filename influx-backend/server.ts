@@ -23,6 +23,9 @@ if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET || !process.env.D
   process.exit(1);
 }
 
+const rawFrontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = rawFrontendUrl.endsWith('/') ? rawFrontendUrl.slice(0, -1) : rawFrontendUrl;
+
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -33,9 +36,6 @@ const io = new Server(httpServer, {
   },
 });
 
-
-const rawFrontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
-const FRONTEND_URL = rawFrontendUrl.endsWith('/') ? rawFrontendUrl.slice(0, -1) : rawFrontendUrl;
 
 app.use(helmet());
 app.use(cors({
