@@ -67,7 +67,8 @@ export const registerInfluencer = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Validation error", errors: (error as any).errors });
+      console.error("Influencer Validation Error:", JSON.stringify(error.errors, null, 2));
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
     }
     console.error("Authentication Debug Error:", error);
     res.status(500).json({ message: "Internal server error" });
@@ -141,7 +142,8 @@ export const registerBrand = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ message: "Validation error", errors: (error as any).errors });
+      console.error("Brand Validation Error:", JSON.stringify(error.errors, null, 2));
+      return res.status(400).json({ message: "Validation error", errors: error.errors });
     }
     
     // Handle Prisma unique constraint errors
