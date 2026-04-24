@@ -17,10 +17,11 @@ export const generateRefreshToken = (user: any) => {
 };
 
 export const setRefreshCookie = (res: any, token: string) => {
+  const isProd = process.env.NODE_ENV === 'production';
   res.cookie('refresh_token', token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict',
+    secure: isProd, // Must be true for SameSite=None
+    sameSite: isProd ? 'none' : 'lax', // 'none' for cross-site prod, 'lax' for local dev
     maxAge: 7 * 24 * 60 * 60 * 1000, 
   });
 };

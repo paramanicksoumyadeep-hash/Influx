@@ -205,23 +205,22 @@ export const login = async (req: Request, res: Response) => {
 
 export const refresh = async (req: Request, res: Response) => {
   try {
-    const cookies = req.headers.cookie;
-    if (!cookies) return res.status(401).json({ message: "No cookies found" });
-    
-    const tokenCookie = cookies.split(';').find(c => c.trim().startsWith('refresh_token='));
-    if (!tokenCookie) return res.status(401).json({ message: "No refresh token" });
-    
-    const token = tokenCookie.split('=')[1];
+    const token = req.cookies.refresh_token;
+    if (!token) return res.status(401).json({ message: "No refresh token found" });
 
     jwt.verify(token, process.env.JWT_REFRESH_SECRET as string, async (err: any, decoded: any) => {
       if (err || !decoded?.id) return res.status(403).json({ message: "Invalid or expired refresh token" });
 
-      const user = await prisma.user.findUnique({ where: { id: decoded.id } });
-      if (!user) return res.status(403).json({ message: "User not found" });
+      try {
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
+        if (!user) return res.status(403).json({ message: "User not found" });
 
-      const accessToken = generateAccessToken(user);
-      // Optional: rotate refresh token here
-      res.json({ accessToken });
+        const accessToken = generateAccessToken(user);
+        res.json({ accessToken });
+      } catch (dbError) {
+        console.error("Refresh DB Error:", dbError);
+        res.status(500).json({ message: "Internal server error during refresh" });
+      }
     });
   } catch (error) {
     console.error("Authentication Debug Error:", error);

@@ -27,16 +27,19 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: FRONTEND_URL,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
     credentials: true,
   },
 });
 
 
+const rawFrontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+const FRONTEND_URL = rawFrontendUrl.endsWith('/') ? rawFrontendUrl.slice(0, -1) : rawFrontendUrl;
+
 app.use(helmet());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin: FRONTEND_URL,
   credentials: true,
 }));
 app.use(express.json({ limit: '10mb' }));
