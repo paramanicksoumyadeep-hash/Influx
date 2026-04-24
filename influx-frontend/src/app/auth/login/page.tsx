@@ -28,6 +28,22 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  const handleDemoLogin = async (role: 'INFLUENCER' | 'BRAND') => {
+    setIsLoading(true);
+    const credentials = role === 'INFLUENCER' 
+      ? { identifier: 'demo_influencer', password: 'Password123!' }
+      : { identifier: 'demo_brand', password: 'Password123!' };
+
+    try {
+      const { data } = await api.post('/auth/login', credentials);
+      setAuth(data.user, data.accessToken);
+      toast.success(`Demo ${role} login successful!`);
+      router.push("/dashboard");
+    } catch (error: any) {
+      toast.error(error.response?.data?.message || "Demo login failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -78,6 +94,28 @@ export default function LoginPage() {
             {isLoading ? "Signing In..." : "Sign In"}
           </button>
         </form>
+
+        <div className="mt-8 pt-8 border-t border-white/10">
+          <p className="text-center text-xs text-text-secondary uppercase tracking-widest mb-4">Quick Access for Recruiters</p>
+          <div className="grid grid-cols-2 gap-4">
+            <button
+              onClick={() => handleDemoLogin('INFLUENCER')}
+              disabled={isLoading}
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-primary/50 transition-all group"
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform">🎯</span>
+              <span className="text-xs font-semibold">Demo Influencer</span>
+            </button>
+            <button
+              onClick={() => handleDemoLogin('BRAND')}
+              disabled={isLoading}
+              className="flex flex-col items-center justify-center gap-2 p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-accent/50 transition-all group"
+            >
+              <span className="text-2xl group-hover:scale-110 transition-transform">🏢</span>
+              <span className="text-xs font-semibold">Demo Brand</span>
+            </button>
+          </div>
+        </div>
 
         <p className="mt-8 text-center text-sm text-text-secondary">
           Don't have an account? <Link href="/auth/register" className="text-white hover:text-accent transition-colors">Sign Up</Link>
