@@ -49,12 +49,6 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 app.use(cookieParser());
 
-// Request logging for debugging
-app.use((req, res, next) => {
-  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
-  next();
-});
-
 // Global Default-Deny Authentication
 import { verifyToken } from './src/middleware/auth.middleware';
 const publicRoutes = [

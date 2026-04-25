@@ -67,10 +67,9 @@ export const registerInfluencer = async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      console.error("Influencer Validation Error:", JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ message: "Validation error", errors: error.errors });
     }
-    console.error("Authentication Debug Error:", error);
+    console.error("Auth Error:", error.message || error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -142,7 +141,6 @@ export const registerBrand = async (req: Request, res: Response) => {
     });
   } catch (error: any) {
     if (error instanceof z.ZodError) {
-      console.error("Brand Validation Error:", JSON.stringify(error.errors, null, 2));
       return res.status(400).json({ message: "Validation error", errors: error.errors });
     }
     
