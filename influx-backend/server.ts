@@ -13,9 +13,12 @@ import campaignRoutes from './src/routes/campaign.routes';
 import chatRoutes from './src/routes/chat.routes';
 import { socketAuth } from './src/middleware/socket.middleware';
 import { registerChatHandlers } from './src/sockets/chat.sockets';
-
+import { ensureDemoUsersExist } from './src/utils/seed';
 
 dotenv.config();
+
+// Auto-seed demo accounts on startup
+ensureDemoUsersExist();
 
 // Startup Failsafe Check
 if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET || !process.env.DATABASE_URL) {
