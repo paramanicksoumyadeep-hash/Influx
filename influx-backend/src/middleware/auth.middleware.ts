@@ -1,18 +1,24 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-export interface AuthenticatedRequest extends Request {
-  user?: {
-    id: string;
-    username: string;
-    role: string;
-  };
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: string;
+        username: string;
+        role: string;
+      };
+    }
+  }
 }
+
+export type AuthenticatedRequest = Request;
 
 export const verifyToken = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   if (req.user) return next();
 
-  const authHeader = req.headers.authorization;
+  const authHeader = req.header('authorization');
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Access Denied: No token provided' });
